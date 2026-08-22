@@ -28,11 +28,15 @@ def get_info():
         'noplaylist': True,
     }
     
-    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt']
+    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
     for cp in cookie_paths:
         if os.path.exists(cp):
             ydl_opts['cookiefile'] = cp
             break
+            
+    if not ydl_opts.get('cookiefile') and os.path.exists('/etc/secrets'):
+        secrets = os.listdir('/etc/secrets')
+        return jsonify({'error': f'Cookies not found. Files in secrets dir: {secrets}'}), 400
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -101,11 +105,17 @@ def download_worker(task_id, url, format_id, is_audio):
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
     }
     
-    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt']
+    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
     for cp in cookie_paths:
         if os.path.exists(cp):
             ydl_opts['cookiefile'] = cp
             break
+            
+    if not ydl_opts.get('cookiefile') and os.path.exists('/etc/secrets'):
+        secrets = os.listdir('/etc/secrets')
+        TASKS[task_id]['status'] = 'error'
+        TASKS[task_id]['error'] = f'Cookies not found. Files in secrets dir: {secrets}'
+        return
     
     if is_audio:
         ydl_opts['postprocessors'] = [{
