@@ -56,17 +56,17 @@ def get_info():
             # Add options for each available resolution
             for res in sorted_res:
                 simplified_options.append({
-                    'id': f'bestvideo[height<={res}]+bestaudio/best[height<={res}]/best',
+                    'id': str(res),
                     'label': f'Video ({res}p) - MP4',
                     'is_audio': False
                 })
                 
             # Fallback if no specific resolutions were found
             if not simplified_options:
-                simplified_options.append({'id': 'bestvideo+bestaudio/best', 'label': 'Best Quality Video (MP4)', 'is_audio': False})
+                simplified_options.append({'id': 'best', 'label': 'Best Quality Video (MP4)', 'is_audio': False})
                 
             # Add Best Audio option (converted to MP3 later)
-            simplified_options.append({'id': 'bestaudio/best', 'label': 'Audio Only (Best Quality MP3)', 'is_audio': True})
+            simplified_options.append({'id': 'audio_only', 'label': 'Audio Only (Best Quality MP3)', 'is_audio': True})
             
             return jsonify({
                 'title': info.get('title'),
@@ -101,7 +101,6 @@ def download_worker(task_id, url, format_id, is_audio):
     outtmpl_name = '%(title)s_Audio.%(ext)s' if is_audio else '%(title)s_%(height)sp.%(ext)s'
             
     ydl_opts = {
-        'format': format_id,
         'outtmpl': os.path.join(task_dir, outtmpl_name),
         'progress_hooks': [progress_hook],
         'quiet': True,
@@ -109,6 +108,13 @@ def download_worker(task_id, url, format_id, is_audio):
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
         'extractor_args': {'youtube': {'player_client': ['android']}}
     }
+    
+    if is_audio or format_id == 'audio_only':
+        ydl_opts['format'] = 'bestaudio/best'
+    else:
+        ydl_opts['format'] = 'bestvideo+bestaudio/best'
+        if format_id and format_id.isdigit():
+            ydl_opts['format_sort'] = [f'res:{format_id}', 'ext:mp4:m4a']
     
     cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
     for cp in cookie_paths:
