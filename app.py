@@ -74,7 +74,10 @@ def get_info():
                 'options': simplified_options
             })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        err_msg = str(e)
+        if ydl_opts.get('cookiefile'):
+            err_msg += f" [DIAGNOSTIC: Cookies WERE loaded from {ydl_opts['cookiefile']}, but YouTube still blocked the request!]"
+        return jsonify({'error': err_msg}), 500
 
 def download_worker(task_id, url, format_id, is_audio):
     def progress_hook(d):
