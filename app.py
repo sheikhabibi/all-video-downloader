@@ -166,9 +166,15 @@ def get_file(task_id):
         
     final_file = None
     for f in os.listdir(task_dir):
-        if not f.endswith('.part') and not f.endswith('.ytdl'):
-            final_file = os.path.join(task_dir, f)
-            break
+        # Skip intermediate/temporary files from yt-dlp
+        if f.endswith('.part') or f.endswith('.ytdl') or f.endswith('.temp'):
+            continue
+        # Skip intermediate stream files (e.g. .f396.mp4, .f251.webm)
+        import re
+        if re.search(r'\.f\d+\.', f):
+            continue
+        final_file = os.path.join(task_dir, f)
+        break
             
     if not final_file or not os.path.exists(final_file):
         return "File not found", 404
