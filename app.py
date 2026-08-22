@@ -26,7 +26,7 @@ def get_info():
         'quiet': True,
         'no_warnings': True,
         'noplaylist': True,
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}
+        'extractor_args': {'youtube': {'player_client': ['android']}}
     }
     
     cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
@@ -107,7 +107,7 @@ def download_worker(task_id, url, format_id, is_audio):
         'quiet': True,
         'no_warnings': True,
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}
+        'extractor_args': {'youtube': {'player_client': ['android']}}
     }
     
     cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
