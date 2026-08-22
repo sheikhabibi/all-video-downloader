@@ -110,12 +110,9 @@ def download_worker(task_id, url, format_id, is_audio):
             'preferredquality': '192',
         }]
     else:
-        # Force merge into MP4 container with proper audio+video muxing
+        # Merge video+audio into MP4 and delete intermediate stream files
         ydl_opts['merge_output_format'] = 'mp4'
-        ydl_opts['postprocessors'] = [{
-            'key': 'FFmpegVideoRemuxer',
-            'preferedformat': 'mp4',
-        }]
+        ydl_opts['keepvideo'] = False
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
