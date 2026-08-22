@@ -26,7 +26,11 @@ def get_info():
         'quiet': True,
         'no_warnings': True,
         'noplaylist': True,
+        'impersonate': 'chrome',
     }
+    
+    if os.path.exists('cookies.txt'):
+        ydl_opts['cookiefile'] = 'cookies.txt'
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -93,7 +97,11 @@ def download_worker(task_id, url, format_id, is_audio):
         'quiet': True,
         'no_warnings': True,
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
+        'impersonate': 'chrome',
     }
+    
+    if os.path.exists('cookies.txt'):
+        ydl_opts['cookiefile'] = 'cookies.txt'
     
     if is_audio:
         ydl_opts['postprocessors'] = [{
