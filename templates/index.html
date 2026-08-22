@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Universal Video Downloader</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <div class="container glass-panel">
+        <h1>Video Downloader</h1>
+        <p class="subtitle">Download any video, anywhere.</p>
+        
+        <div class="input-group">
+            <input type="text" id="url-input" placeholder="Paste video URL here..." autocomplete="off">
+            <button id="fetch-btn">Fetch Info</button>
+        </div>
+        
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Fetching video details...</p>
+        </div>
+
+        <div id="video-info" class="hidden">
+            <img id="video-thumb" src="" alt="Thumbnail">
+            <h3 id="video-title">Video Title</h3>
+            
+            <div class="options-group">
+                <label for="format-select">Select Quality:</label>
+                <select id="format-select">
+                    <!-- Options populated via JS -->
+                </select>
+            </div>
+            
+            <button id="download-btn">Start Download</button>
+        </div>
+
+        <div id="progress-container" class="hidden">
+            <div class="progress-bar-bg">
+                <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+            <p id="progress-text">0%</p>
+            <a id="save-file-btn" class="hidden" href="#">Save File</a>
+        </div>
+        
+        <div id="error-message" class="hidden"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            });
+        }
+    </script>
+</body>
+</html>
