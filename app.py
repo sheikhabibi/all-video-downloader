@@ -26,7 +26,6 @@ def get_info():
         'quiet': True,
         'no_warnings': True,
         'noplaylist': True,
-        'impersonate': 'chrome',
     }
     
     if os.path.exists('cookies.txt'):
@@ -97,7 +96,6 @@ def download_worker(task_id, url, format_id, is_audio):
         'quiet': True,
         'no_warnings': True,
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-        'impersonate': 'chrome',
     }
     
     if os.path.exists('cookies.txt'):
