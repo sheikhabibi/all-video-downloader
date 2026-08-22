@@ -78,12 +78,9 @@ def download_worker(task_id, url, format_id, is_audio):
             p = re.sub(r'\x1b\[[0-9;]*m', '', p)
             TASKS[task_id]['progress'] = p
         elif d['status'] == 'finished':
-            TASKS[task_id]['status'] = 'completed'
-            
-            # For MP3 conversion, yt-dlp changes the extension, so we need to infer the new filename
-            # But yt-dlp usually updates the filename in the postprocessor hook or we can just glob it.
-            # To be safe, we just store the initial filename; get_file will handle extension changes.
-            TASKS[task_id]['filename'] = d['filename']
+            # Note: 'finished' here just means a single stream (video or audio) finished downloading.
+            # Do NOT mark the task as completed yet, because the FFmpeg merge still needs to happen!
+            TASKS[task_id]['progress'] = 'Processing/Merging...'
             
     task_dir = os.path.join(tempfile.gettempdir(), f'videodl_{task_id}')
     os.makedirs(task_dir, exist_ok=True)
@@ -117,6 +114,8 @@ def download_worker(task_id, url, format_id, is_audio):
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
+        # Mark as completed only AFTER all downloads and FFmpeg merges are fully done!
+        TASKS[task_id]['status'] = 'completed'
     except Exception as e:
         TASKS[task_id]['status'] = 'error'
         TASKS[task_id]['error'] = str(e)
