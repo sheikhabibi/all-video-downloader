@@ -26,18 +26,11 @@ def get_info():
         'quiet': True,
         'no_warnings': True,
         'noplaylist': True,
-        'impersonate': 'chrome',
     }
     
-    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
-    for cp in cookie_paths:
-        if os.path.exists(cp):
-            ydl_opts['cookiefile'] = cp
-            break
-            
-    if not ydl_opts.get('cookiefile') and os.path.exists('/etc/secrets'):
-        secrets = os.listdir('/etc/secrets')
-        return jsonify({'error': f'Cookies not found. Files in secrets dir: {secrets}'}), 400
+    # Use cookies if available (for local use)
+    if os.path.exists('cookies.txt'):
+        ydl_opts['cookiefile'] = 'cookies.txt'
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -56,17 +49,17 @@ def get_info():
             # Add options for each available resolution
             for res in sorted_res:
                 simplified_options.append({
-                    'id': str(res),
+                    'id': f'bestvideo[height<={res}]+bestaudio/best[height<={res}]/best',
                     'label': f'Video ({res}p) - MP4',
                     'is_audio': False
                 })
                 
             # Fallback if no specific resolutions were found
             if not simplified_options:
-                simplified_options.append({'id': 'best', 'label': 'Best Quality Video (MP4)', 'is_audio': False})
+                simplified_options.append({'id': 'bestvideo+bestaudio/best', 'label': 'Best Quality Video (MP4)', 'is_audio': False})
                 
             # Add Best Audio option (converted to MP3 later)
-            simplified_options.append({'id': 'audio_only', 'label': 'Audio Only (Best Quality MP3)', 'is_audio': True})
+            simplified_options.append({'id': 'bestaudio/best', 'label': 'Audio Only (Best Quality MP3)', 'is_audio': True})
             
             return jsonify({
                 'title': info.get('title'),
@@ -75,10 +68,7 @@ def get_info():
                 'options': simplified_options
             })
     except Exception as e:
-        err_msg = str(e)
-        if ydl_opts.get('cookiefile'):
-            err_msg += f" [DIAGNOSTIC: Cookies WERE loaded from {ydl_opts['cookiefile']}]"
-        return jsonify({'error': err_msg}), 500
+        return jsonify({'error': str(e)}), 500
 
 def download_worker(task_id, url, format_id, is_audio):
     def progress_hook(d):
@@ -101,32 +91,17 @@ def download_worker(task_id, url, format_id, is_audio):
     outtmpl_name = '%(title)s_Audio.%(ext)s' if is_audio else '%(title)s_%(height)sp.%(ext)s'
             
     ydl_opts = {
+        'format': format_id,
         'outtmpl': os.path.join(task_dir, outtmpl_name),
         'progress_hooks': [progress_hook],
         'quiet': True,
         'no_warnings': True,
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-        'impersonate': 'chrome',
     }
     
-    if is_audio or format_id == 'audio_only':
-        ydl_opts['format'] = 'bestaudio/best'
-    else:
-        ydl_opts['format'] = 'bestvideo+bestaudio/best'
-        if format_id and format_id.isdigit():
-            ydl_opts['format_sort'] = [f'res:{format_id}', 'ext:mp4:m4a']
-    
-    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
-    for cp in cookie_paths:
-        if os.path.exists(cp):
-            ydl_opts['cookiefile'] = cp
-            break
-            
-    if not ydl_opts.get('cookiefile') and os.path.exists('/etc/secrets'):
-        secrets = os.listdir('/etc/secrets')
-        TASKS[task_id]['status'] = 'error'
-        TASKS[task_id]['error'] = f'Cookies not found. Files in secrets dir: {secrets}'
-        return
+    # Use cookies if available (for local use)
+    if os.path.exists('cookies.txt'):
+        ydl_opts['cookiefile'] = 'cookies.txt'
     
     if is_audio:
         ydl_opts['postprocessors'] = [{
@@ -135,7 +110,12 @@ def download_worker(task_id, url, format_id, is_audio):
             'preferredquality': '192',
         }]
     else:
+        # Force merge into MP4 container with proper audio+video muxing
         ydl_opts['merge_output_format'] = 'mp4'
+        ydl_opts['postprocessors'] = [{
+            'key': 'FFmpegVideoRemuxer',
+            'preferedformat': 'mp4',
+        }]
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

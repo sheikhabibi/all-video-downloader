@@ -8,5 +8,3 @@ Jinja2==3.1.6
 MarkupSafe==3.0.3
 Werkzeug==3.1.8
 yt-dlp==2026.8.19
-gunicorn==21.2.0
-curl-cffi==0.5.10
