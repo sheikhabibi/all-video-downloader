@@ -28,8 +28,11 @@ def get_info():
         'noplaylist': True,
     }
     
-    if os.path.exists('cookies.txt'):
-        ydl_opts['cookiefile'] = 'cookies.txt'
+    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt']
+    for cp in cookie_paths:
+        if os.path.exists(cp):
+            ydl_opts['cookiefile'] = cp
+            break
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -98,8 +101,11 @@ def download_worker(task_id, url, format_id, is_audio):
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
     }
     
-    if os.path.exists('cookies.txt'):
-        ydl_opts['cookiefile'] = 'cookies.txt'
+    cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt']
+    for cp in cookie_paths:
+        if os.path.exists(cp):
+            ydl_opts['cookiefile'] = cp
+            break
     
     if is_audio:
         ydl_opts['postprocessors'] = [{
