@@ -165,16 +165,16 @@ def get_file(task_id):
         return "File not found", 404
         
     final_file = None
+    largest_size = 0
     for f in os.listdir(task_dir):
-        # Skip intermediate/temporary files from yt-dlp
+        # Skip temporary/in-progress files
         if f.endswith('.part') or f.endswith('.ytdl') or f.endswith('.temp'):
             continue
-        # Skip intermediate stream files (e.g. .f396.mp4, .f251.webm)
-        import re
-        if re.search(r'\.f\d+\.', f):
-            continue
-        final_file = os.path.join(task_dir, f)
-        break
+        filepath = os.path.join(task_dir, f)
+        fsize = os.path.getsize(filepath)
+        if fsize > largest_size:
+            largest_size = fsize
+            final_file = filepath
             
     if not final_file or not os.path.exists(final_file):
         return "File not found", 404
