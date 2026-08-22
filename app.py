@@ -26,7 +26,6 @@ def get_info():
         'quiet': True,
         'no_warnings': True,
         'noplaylist': True,
-        'impersonate': 'chrome',
     }
     
     cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
@@ -77,7 +76,7 @@ def get_info():
     except Exception as e:
         err_msg = str(e)
         if ydl_opts.get('cookiefile'):
-            err_msg += f" [DIAGNOSTIC: Cookies WERE loaded from {ydl_opts['cookiefile']}, but YouTube still blocked the request!]"
+            err_msg += f" [DIAGNOSTIC: Cookies WERE loaded from {ydl_opts['cookiefile']}]"
         return jsonify({'error': err_msg}), 500
 
 def download_worker(task_id, url, format_id, is_audio):
@@ -107,7 +106,6 @@ def download_worker(task_id, url, format_id, is_audio):
         'quiet': True,
         'no_warnings': True,
         'ffmpeg_location': imageio_ffmpeg.get_ffmpeg_exe(),
-        'impersonate': 'chrome',
     }
     
     cookie_paths = ['cookies.txt', '/etc/secrets/cookies.txt', '/etc/secrets/cookies']
